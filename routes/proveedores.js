@@ -53,7 +53,7 @@ const proveedoresApi = (app) => {
         const proveedor = await proveedoresService.getProveedor(proveedorId);
 
         res.status(200).json({
-          data: proveedor,
+          proveedor,
           message: "proveedor listado",
         });
       } catch (e) {
@@ -75,6 +75,7 @@ const proveedoresApi = (app) => {
         res.status(201).json({
           _id: createdProveedorId,
           message: "Provedoor creado",
+          proveedor: {...proveedor, contactos: []},
         });
       } catch (e) {
         next(e);
@@ -142,6 +143,7 @@ const proveedoresApi = (app) => {
           res.status(201).json({
             _id: createdContatoProveedorId,
             message: "Contacto creado",
+            contacto: contactoProveedor
           });
         }
       } catch (e) {

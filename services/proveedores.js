@@ -10,7 +10,7 @@ class ProveedoresService {
 
   async getProveedores() {
     // obtiene los proveedores de la BD
-    const proveedores = await this.mongoDB.getAll(this.collection);
+    const proveedores = await this.mongoDB.getAll(this.collection, {}, {nombre: 1});
     // mapea los proveedores y a cada proveedor le agrega sus contactos
     const proveedorConContactos = Promise.all(
       proveedores.map(async (proveedor) => ({
@@ -51,7 +51,7 @@ class ProveedoresService {
   }
 
   async deleteProveedor(proveedorId) {
-    await this.contactosProveedorService.deleteContactosProveedor(proveedorId);
+    await this.contactosProveedorService.deleteContactosProveedorWithProveedorId(proveedorId);
     const deletedProveedorId = await this.mongoDB.delete(
       this.collection,
       proveedorId
