@@ -116,7 +116,7 @@ const authApi = (app) => {
         next(boom.unauthorized());
       }
 
-      const { _id, nombre, apellido, usuario, rol } = user;
+      const { _id, nombre, apellido, usuario, rol } = user._doc;
 
       const payload = {
         sub: _id,

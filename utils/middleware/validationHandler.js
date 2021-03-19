@@ -1,4 +1,6 @@
-const boom = require("@hapi/boom");
+
+
+ const boom = require("@hapi/boom");
 const joi = require("@hapi/joi");
 
 const validate = (data, schema) => {
@@ -7,6 +9,7 @@ const validate = (data, schema) => {
 };
 
 const validationHandler = (schema, check = "body") => {
+
   return (req, res, next) => {
     const error = validate(req[check], schema);
 
@@ -17,3 +20,4 @@ const validationHandler = (schema, check = "body") => {
 module.exports = {
   validationHandler,
 };
+ 

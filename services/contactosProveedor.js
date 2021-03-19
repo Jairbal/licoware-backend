@@ -1,51 +1,46 @@
-const { ObjectId } = require("mongodb");
-const { MongoLib } = require("../lib/mongo");
+//const { ObjectId } = require("mongodb");
+//const { MongoLib } = require("../lib/mongo");
+const mongoose = require("mongoose");
+const {
+  ContactoProveedorSchema,
+} = require("../utils/schemas/contactosProveedor");
+const { ProveedorSchema } = require("../utils/schemas/proveedores");
 
 class ContactosProveedorService {
-  constructor() {
-    this.collection = "contactosProveedor";
-    this.mongoDB = new MongoLib();
-  }
-
-  async getContactosProveedor(proveedorId) {
-    const contactosProveedor = await this.mongoDB.getAll(this.collection, {
-      proveedorId,
-    });
-    return contactosProveedor || [];
-  }
-
   async getContactoProveedor(contactoProveedorId) {
-    const contactoProveedor = await this.mongoDB.get(
-      this.collection,
-      contactoProveedorId
-    );
+    const contactoProveedor = await ContactoProveedorSchema.findOne({
+      proveedorId: mongoose.Types.ObjectId(contactoProveedorId),
+    });
+
     return contactoProveedor || {};
   }
 
   async createContactoProveedor(contactoProveedor) {
-    contactoProveedor.proveedorId = ObjectId(contactoProveedor.proveedorId);
-    const createdContactoProveedorId = await this.mongoDB.create(
-      this.collection,
-      contactoProveedor
-    );
-    return createdContactoProveedorId;
+    const contactoProveedorCreated = await (
+      await ContactoProveedorSchema.create(contactoProveedor)
+    ).save();
+    await ProveedorSchema.findByIdAndUpdate(contactoProveedor.proveedorId, {
+      $addToSet: {
+        contactos: [contactoProveedorCreated._id],
+      },
+    });
+    return contactoProveedorCreated;
   }
 
-  async updateContactoProveedor({ contactoProveedorId, contactoProveedor }) {
-    const updatedContactoProveedorId = await this.mongoDB.update(
-      this.collection,
+  async updateContactoProveedor(contactoProveedorId, contactoProveedor) {
+    const contactoProveedorUpdated = await ContactoProveedorSchema.findByIdAndUpdate(
       contactoProveedorId,
       contactoProveedor
     );
-    return updatedContactoProveedorId;
+    return contactoProveedorUpdated._id;
   }
 
   async deleteContactoProveedor(contactoProveedorId) {
-    const deletedContactoProveedorId = await this.mongoDB.delete(
-      this.collection,
+    const deletedProveedor = await ContactoProveedorSchema.findByIdAndDelete(
       contactoProveedorId
     );
-    return deletedContactoProveedorId;
+    console.log(deletedProveedor);
+    return null;
   }
 
   async deleteContactoProveedor(id) {

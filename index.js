@@ -2,6 +2,8 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
+const path = require("path");
+const {dbConnection} = require("./lib/mongoose");
 
 const { config } = require("./config");
 
@@ -10,16 +12,29 @@ const authApi = require("./routes/auth");
 
 const { logErrors, errorHandler, wrapErrors} = require('./utils/middleware/errorHandlers');
 const notFoundHandler = require('./utils/middleware/notFoundHandler');
+const facturasApi = require("./routes/facturas");
+const categoriasApi = require("./routes/categorias");
+const productosApi = require("./routes/productos");
 
 const app = express();
+
+dbConnection();
+
+
 
 app.use(helmet());
 app.use(cors());
 app.use(morgan("tiny"));
+//app.use(express.urlencoded({extended: true}));
 app.use(express.json());
+
+app.use(express.static(path.join("public")));
 
 // Rutas
 proveedoresApi(app);
+facturasApi(app);
+categoriasApi(app);
+productosApi(app);
 authApi(app);
 
 //Catch 404

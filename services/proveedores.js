@@ -1,63 +1,49 @@
-const { MongoLib } = require("../lib/mongo");
-const ContactosProveedorService = require("./contactosProveedor");
+const { ProveedorSchema } = require("../utils/schemas/proveedores");
+const {
+  ContactoProveedorSchema,
+} = require("../utils/schemas/contactosProveedor");
 
 class ProveedoresService {
-  constructor() {
-    this.collection = "proveedores";
-    this.mongoDB = new MongoLib();
-    this.contactosProveedorService = new ContactosProveedorService();
-  }
-
   async getProveedores() {
-    // obtiene los proveedores de la BD
-    const proveedores = await this.mongoDB.getAll(this.collection, {}, {nombre: 1});
-    // mapea los proveedores y a cada proveedor le agrega sus contactos
-    const proveedorConContactos = Promise.all(
-      proveedores.map(async (proveedor) => ({
-        ...proveedor,
-        contactos: await this.contactosProveedorService.getContactosProveedor(
-          proveedor._id
-        ),
-      }))
-    );
-    return proveedorConContactos || [];
+    const proveedores = await ProveedorSchema.find()
+      .populate("contactos")
+      .sort({ nombre: 1 });
+    return proveedores || [];
   }
 
   async getProveedor(proveedorId) {
-    // Obtiene el proveedor de la BD
-    const proveedor = await this.mongoDB.get(this.collection, proveedorId);
-    const proveedorConContactos = {
-      ...proveedor,
-      contactos: await this.contactosProveedorService.getContactosProveedor(proveedor._id)
-    }
-    return proveedorConContactos || {};
+    const proveedor = await ProveedorSchema.findById(proveedorId).populate(
+      "contactos"
+    );
+    return proveedor || {};
   }
 
   async createProveedor({ proveedor }) {
-    const createdProveedorId = await this.mongoDB.create(
-      this.collection,
-      proveedor
-    );
-    return createdProveedorId;
+    const createdProveedor = await (
+      await ProveedorSchema.create(proveedor)
+    ).save();
+    return createdProveedor;
   }
 
   async updateProveedor({ proveedorId, proveedor }) {
-    const updatedProveedorId = await this.mongoDB.update(
-      this.collection,
+    const updatedProveedor = await ProveedorSchema.findByIdAndUpdate(
       proveedorId,
       proveedor
     );
-    return updatedProveedorId;
+    return updatedProveedor;
   }
 
   async deleteProveedor(proveedorId) {
-    await this.contactosProveedorService.deleteContactosProveedorWithProveedorId(proveedorId);
-    const deletedProveedorId = await this.mongoDB.delete(
-      this.collection,
+    const proveedor = await ProveedorSchema.findById(proveedorId);
+    Promise.all(
+      proveedor.contactos.map(async (contacto) => {
+        await ContactoProveedorSchema.findByIdAndDelete(contacto);
+      })
+    );
+    const deletedProveedor = await ProveedorSchema.findByIdAndDelete(
       proveedorId
     );
-
-    return deletedProveedorId;
+    return deletedProveedor;
   }
 }
 

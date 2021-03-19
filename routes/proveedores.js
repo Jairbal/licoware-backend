@@ -14,7 +14,7 @@ const {
   updateContactoProveedorSchema,
 } = require("../utils/schemas/contactosProveedor");
 
-const {validationHandler} = require("../utils/middleware/validationHandler");
+const { validationHandler } = require("../utils/middleware/validationHandler");
 const scopesValidationHandler = require("../utils/middleware/scopesValidationHandler");
 
 // JWT Strategy
@@ -30,13 +30,13 @@ const proveedoresApi = (app) => {
   router.get(
     "/",
     passport.authenticate("jwt", { session: false }),
-    scopesValidationHandler(['read:proveedores']),
+    scopesValidationHandler(["read:proveedores"]),
     async (req, res, next) => {
       try {
         const proveedores = await proveedoresService.getProveedores();
         res.status(200).json({
           data: proveedores,
-          message: "proveedores listados",
+          message: "Proveedores Listados",
         });
       } catch (e) {
         next(e);
@@ -46,6 +46,8 @@ const proveedoresApi = (app) => {
 
   router.get(
     "/:proveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["read:proveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     async (req, res, next) => {
       const { proveedorId } = req.params;
@@ -54,7 +56,7 @@ const proveedoresApi = (app) => {
 
         res.status(200).json({
           proveedor,
-          message: "proveedor listado",
+          message: "Proveedor Listado",
         });
       } catch (e) {
         next(e);
@@ -64,18 +66,20 @@ const proveedoresApi = (app) => {
 
   router.post(
     "/",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["create:proveedores"]),
     validationHandler(createProveedorSchema),
     async (req, res, next) => {
       const proveedor = req.body;
       try {
-        const createdProveedorId = await proveedoresService.createProveedor({
+        const createdProveedor = await proveedoresService.createProveedor({
           proveedor,
         });
 
         res.status(201).json({
-          _id: createdProveedorId,
-          message: "Provedoor creado",
-          proveedor: {...proveedor, contactos: []},
+          _id: createdProveedor._id,
+          message: "Provedoor Creado",
+          proveedor: createdProveedor,
         });
       } catch (e) {
         next(e);
@@ -85,6 +89,8 @@ const proveedoresApi = (app) => {
 
   router.put(
     "/:proveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["update:proveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     validationHandler(updateProveedorSchema),
     async (req, res, next) => {
@@ -98,7 +104,7 @@ const proveedoresApi = (app) => {
 
         res.status(200).json({
           _id: updatedProveedorId,
-          message: "Provedoor actualizado",
+          message: "Provedoor Actualizado",
         });
       } catch (e) {
         next(e);
@@ -108,6 +114,8 @@ const proveedoresApi = (app) => {
 
   router.delete(
     "/:proveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["delete:proveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     async (req, res, next) => {
       const { proveedorId } = req.params;
@@ -118,7 +126,7 @@ const proveedoresApi = (app) => {
 
         res.status(200).json({
           _id: deletedProveedorId,
-          message: "Provedoor eliminado",
+          message: "Provedoor Eliminado",
         });
       } catch (e) {
         next(e);
@@ -129,23 +137,22 @@ const proveedoresApi = (app) => {
   // contactos del proveedor
   router.post(
     "/:proveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["create:contactosProveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     validationHandler(createContactoProveedorSchema),
     async (req, res, next) => {
       try {
         const { proveedorId } = req.params;
         const contactoProveedor = req.body;
-        if (proveedorId === contactoProveedor.proveedorId) {
-          const createdContatoProveedorId = await contactosProveedorService.createContactoProveedor(
-            contactoProveedor
-          );
+        const createdContatoProveedor = await contactosProveedorService.createContactoProveedor(
+          contactoProveedor
+        );
 
-          res.status(201).json({
-            _id: createdContatoProveedorId,
-            message: "Contacto creado",
-            contacto: contactoProveedor
-          });
-        }
+        res.status(201).json({
+          message: "Contacto Creado",
+          contacto: createdContatoProveedor,
+        });
       } catch (e) {
         next(e);
       }
@@ -154,6 +161,8 @@ const proveedoresApi = (app) => {
 
   router.get(
     "/:proveedorId/:contactoProveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["read:contactosProveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     validationHandler({ contactoProveedorId: idSchema }, "params"),
     async (req, res, next) => {
@@ -168,7 +177,7 @@ const proveedoresApi = (app) => {
         if (contactoProveedor._id === proveedorId) {
           res.status(200).json({
             data: contactoProveedor,
-            message: "contacto listado",
+            message: "contacto Listado",
           });
         } else {
           new Error("El contacto a obtener no pertenece al proveedor indicado");
@@ -181,6 +190,8 @@ const proveedoresApi = (app) => {
 
   router.put(
     "/:proveedorId/:contactoProveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["update:contactosProveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     validationHandler({ contactoProveedorId: idSchema }, "params"),
     validationHandler(updateContactoProveedorSchema),
@@ -188,7 +199,6 @@ const proveedoresApi = (app) => {
       try {
         const { proveedorId, contactoProveedorId } = req.params;
         const nuevoContactoProveedor = req.body;
-        console.log(req.params);
 
         // valida que el contacto que esta eliminando pertenezca al proveedor de la ruta
         const contactoProveedor = await contactosProveedorService.getContactoProveedor(
@@ -196,11 +206,12 @@ const proveedoresApi = (app) => {
         );
         if (proveedorId === contactoProveedor._id) {
           const updatedContactoProveedorId = await contactosProveedorService.updateContactoProveedor(
-            { contactoProveedorId, nuevoContactoProveedor }
+            contactoProveedorId,
+            nuevoContactoProveedor
           );
           res.statu(200).json({
             _id: updatedContactoProveedorId,
-            message: "Contacto actualizado",
+            message: "Contacto Actualizado",
           });
         } else {
           new Error(
@@ -215,6 +226,8 @@ const proveedoresApi = (app) => {
 
   router.delete(
     "/:proveedorId/:contactoProveedorId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["delete:contactosProveedores"]),
     validationHandler({ proveedorId: idSchema }, "params"),
     validationHandler({ contactoProveedorId: idSchema }, "params"),
     async (req, res, next) => {
@@ -222,24 +235,14 @@ const proveedoresApi = (app) => {
         const { proveedorId } = req.params;
         const { contactoProveedorId } = req.params;
 
-        const contactProveedor = await contactosProveedorService.getContactoProveedor(
+        const deletedContactoProveedorId = await contactProveedorService.deleteContactoProveedor(
           contactoProveedorId
         );
-        // valida que el contacto que va a eliminar pertenezca al proveedor de la ruta
-        if (contactProveedor._id === proveedorId) {
-          const deletedContactoProveedorId = await contactProveedorService.deleteContacto(
-            contactProveedor
-          );
 
-          res.status(200).json({
-            _id: deletedContactoProveedorId,
-            message: "Contacto elimindo",
-          });
-        } else {
-          new Error(
-            "El contacto a eliminar no pertenece al proveedor indicado"
-          );
-        }
+        res.status(200).json({
+          _id: deletedContactoProveedorId,
+          message: "Contacto Elimindo",
+        });
       } catch (e) {
         next(e);
       }
