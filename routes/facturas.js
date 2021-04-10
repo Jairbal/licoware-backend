@@ -7,7 +7,7 @@ const {
   updateFacturaSchema,
 } = require("../utils/schemas/facturas");
 
-const {validationHandler} = require("../utils/middleware/validationHandler");
+const { validationHandler } = require("../utils/middleware/validationHandler");
 const scopesValidationHandler = require("../utils/middleware/scopesValidationHandler");
 const FacturasService = require("../services/facturas");
 
@@ -37,6 +37,26 @@ const facturasApi = (app) => {
     }
   );
 
+  router.get(
+    "/:facturaId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["read:facturas"]),
+    validationHandler({ facturaId: idSchema }, "params"),
+    async (req, res, next) => {
+      const { facturaId } = req.params;
+      try {
+        const factura = await facturasService.getFactura(facturaId);
+
+        res.status(200).json({
+          factura,
+          message: "Factura Listado",
+        });
+      } catch (e) {
+        next(e);
+      }
+    }
+  );
+
   router.post(
     "/",
     passport.authenticate("jwt", { session: false }),
@@ -50,10 +70,58 @@ const facturasApi = (app) => {
         });
 
         res.status(201).json({
-            _id: createdFactura._id,
-            message: 'Factura creada',
-            factura: createdFactura
-        })
+          _id: createdFactura._id,
+          message: "Factura creada",
+          factura: createdFactura,
+        });
+      } catch (e) {
+        next(e);
+      }
+    }
+  );
+
+  router.put(
+    "/:facturaId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["update:facturas"]),
+    validationHandler({ facturaId: idSchema }, "params"),
+    validationHandler(updateFacturaSchema),
+    async (req, res, next) => {
+      const { facturaId } = req.params;
+      let factura = req.body;
+      try {
+        const updatedFacturaId = await facturasService.updateFactura({
+          facturaId,
+          factura,
+        });
+
+        factura = await facturasService.getFactura(facturaId);
+
+        res.status(200).json({
+          _id: updatedFacturaId,
+          message: "Factura actualizada",
+          factura
+        });
+      } catch (e) {
+        next(e);
+      }
+    }
+  );
+
+  router.delete(
+    "/:facturaId",
+    passport.authenticate("jwt", { session: false }),
+    scopesValidationHandler(["delete:facturas"]),
+    validationHandler({ facturaId: idSchema }, "params"),
+    async (req, res, next) => {
+      const { facturaId } = req.params;
+      try {
+        const deletedFacturaId = await facturasService.deleteFactura(facturaId);
+
+        res.status(200).json({
+          _id: deletedFacturaId,
+          message: "Factura Eliminada",
+        });
       } catch (e) {
         next(e);
       }

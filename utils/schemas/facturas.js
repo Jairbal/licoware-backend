@@ -4,9 +4,10 @@ const numero = joi.string();
 const idSchema = joi.string().regex(/^[0-9a-fA-F]{24}$/);
 const fecha = joi.string();
 const credito = joi.boolean();
+const numeroProductos = joi.number().positive();
 const fechaMaxPago = joi.string();
 const metodoPago = joi.string();
-const total = joi.number();
+const total = joi.number().positive();
 const productos = joi.array();
 
 const FacturaSchema = Schema({
@@ -38,6 +39,10 @@ const FacturaSchema = Schema({
     required: true,
     default: 0,
   },
+  numeroProductos: {
+    type: Number,
+    required: true,
+  }
 });
 
 FacturaSchema.method("toJSON", function () {
@@ -62,6 +67,7 @@ const updateFacturaSchema = {
   fecha,
   productos,
   credito,
+  numeroProductos,
   fechaMaxPago,
   metodoPago,
   total,

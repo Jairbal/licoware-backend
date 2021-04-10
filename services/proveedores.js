@@ -4,6 +4,8 @@ const {
 } = require("../utils/schemas/contactosProveedor");
 
 class ProveedoresService {
+
+  
   async getProveedores() {
     const proveedores = await ProveedorSchema.find()
       .populate("contactos")

@@ -1,5 +1,5 @@
 //const { MongoLib } = require("../lib/mongo");
-const {userSchema} = require("../utils/schemas/usuarios");
+const { userSchema } = require("../utils/schemas/usuarios");
 const bcrypt = require("bcrypt");
 
 class UsersService {
@@ -8,8 +8,22 @@ class UsersService {
     //this.mongoDB = new MongoLib();
   }
 
+  async getUsuarios() {
+    let usuarios = await userSchema.find();
+    usuarios = usuarios.map((usuario) => ({
+      _id: usuario._id,
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      usuario: usuario.usuario,
+      rol: usuario.rol,
+      createdAt: usuario.createdAt,
+    }));
+
+    return usuarios || [];
+  }
+
   async getUserByUsuario(usuario) {
-    const user = userSchema.findOne({usuario}).exec();
+    const user = userSchema.findOne({ usuario }).exec();
     //const [user] = await this.mongoDB.getAll(this.collection, { usuario: {$regex: usuario, $options: 'i'} });
     return user || {};
   }
@@ -20,12 +34,15 @@ class UsersService {
     return user || {};
   }
 
-  async createUser({ user }) {
-    const { password } = user;
+  async createUser({ usuario }) {
+    console.log("services", usuario);
+    const { password } = usuario;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const createdUser = await (await userSchema.create({...user, password: hashedPassword})).save();
+    const createdUser = await (
+      await userSchema.create({ ...usuario, password: hashedPassword })
+    ).save();
     /* const createdUserId = await this.mongoDB.create(this.collection, {
       user,
       password: hashedPassword,
@@ -35,7 +52,7 @@ class UsersService {
 
   async updateUser({ userId, user }) {
     const existUser = await userSchema.findfindById(userId);
- 
+
     // const existUser = await this.mongoDB.get(this.collection, userId);
     if (!existUser) {
       return null;
@@ -53,7 +70,7 @@ class UsersService {
     ); */
 
     const updatedUser = await userSchema.findByIdAndUpdate(userId, user);
-    return updatedUser; 
+    return updatedUser;
   }
 
   async deleteUser(userId) {

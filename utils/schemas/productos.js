@@ -1,6 +1,5 @@
 const { Schema, model } = require("mongoose");
 const joi = require("@hapi/joi");
-const createdAt = joi.date();
 const idSchema = joi.string().regex(/^[0-9a-fA-F]{24}$/);
 const nombre = joi.string();
 const descripcion = joi.string();
@@ -46,7 +45,6 @@ ProductoSchema.method("toJSON", function () {
 
 const createProductoSchema = {
   creator: idSchema.required(),
-  createdAt: createdAt.required(),
   nombre: nombre.required(),
   descripcion,
   categoria: idSchema.required(),
@@ -58,6 +56,7 @@ const createProductoSchema = {
 const updateProductoSchema = {
   nombre,
   descripcion,
+  categoria: idSchema.required(),
   stock,
   precioVenta,
   imagen,

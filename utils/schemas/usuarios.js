@@ -39,8 +39,7 @@ const createdAt = joi.string();
 const createUserSchema = {
   nombre: nombre.required(),
   apellido: apellido.required(),
-  usuario: usuario.required(),
-  password: password.required(),
+  usuario: usuario.required().min(6),
   rol: rol.required(),
   createdAt: createdAt.required()
 };
@@ -49,7 +48,6 @@ const updateUserSchema = {
   nombre,
   apellido,
   usuario,
-  password,
   rol,
   createdAt: createdAt.required(),
 };
